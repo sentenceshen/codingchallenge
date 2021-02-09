@@ -1,4 +1,4 @@
-module codingchallenge
+module github.com/sentenceshen/codingchallenge
 
 go 1.13
 
