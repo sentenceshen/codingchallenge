@@ -73,60 +73,74 @@ func stop(pid string) (err error) {
 func Start(w http.ResponseWriter, r *http.Request, l *log.Logger) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		l.Printf("An error occurred while reading response body: %v\n", err)
+		l.Printf("An error occurred while reading response body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 	p, err := start("bash", "-c", string(body))
 	if err != nil {
-		l.Printf("Process error: %v\n", err)
+		l.Printf("Process error: %v", err)
 		w.Write([]byte("error"))
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
 	tmp := fmt.Sprintf("%v", p)
 	l.Printf("start process " + tmp)
 	w.Write([]byte(tmp))
+	w.WriteHeader(http.StatusOK)
 }
 
 func Query(w http.ResponseWriter, r *http.Request, l *log.Logger) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		l.Printf("An error occurred while reading response body: %v\n", err)
+		l.Printf("An error occurred while reading response body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 	pid, err := strconv.Atoi(string(body))
 	if err != nil {
 		l.Printf("pid %s", body);
 		w.Write([]byte("pid error"))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	if pid <= 0 {
 		l.Printf("pid %s", body);
 		w.Write([]byte("pid error"))
+		w.WriteHeader(http.StatusBadRequest)
 		return
 	}
 	err = query(string(body))
 	if err != nil {
-		l.Printf("Process not found: %v\n", err)
+		l.Printf("Process not found: %v", err)
 		w.Write([]byte("Process not found"))
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 	l.Printf("Process %s running\n", body)
 	w.Write([]byte("running"))
+	w.WriteHeader(http.StatusOK)
 }
 
 func Stop(w http.ResponseWriter, r *http.Request, l *log.Logger) {
 	body, err := ioutil.ReadAll(r.Body)
 	if err != nil {
-		l.Printf("An error occurred while reading response body: %v\n", err)
+		l.Printf("An error occurred while reading response body: %v", err)
+		w.WriteHeader(http.StatusInternalServerError)
 		return
 	}
+	defer r.Body.Close()
 	err = stop(string(body))
 	if err != nil {
-		l.Printf("Process not found: %v\n", err)
+		l.Printf("Process not found: %v", err)
 		w.Write([]byte("process not found"))
+		w.WriteHeader(http.StatusOK)
 		return
 	}
 	l.Printf("stop process %s", body)
 	w.Write([]byte("stoped"))
+	w.WriteHeader(http.StatusOK)
 }
 
